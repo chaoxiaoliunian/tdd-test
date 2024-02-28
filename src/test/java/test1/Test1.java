@@ -1,6 +1,7 @@
-package tdd.test.test1;
+package test1;
 
 import org.junit.Test;
+import tdd.test.test1.Dollar;
 
 import static org.junit.Assert.assertEquals;
 
