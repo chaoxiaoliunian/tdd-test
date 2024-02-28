@@ -8,7 +8,6 @@ import java.util.List;
 public class Department implements Company {
     List<Company> list = new ArrayList<>();
 
-    @Override
     public void add(Company a1) {
         list.add(a1);
     }

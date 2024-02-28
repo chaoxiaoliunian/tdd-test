@@ -6,7 +6,6 @@ public class Employee implements Company{
         this.age=i;
     }
 
-    @Override
     public void add(Company a1) {
 
     }
