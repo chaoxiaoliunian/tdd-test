@@ -1,4 +1,4 @@
-package design.pattern;
+package design.pattern.command;
 
 public class ConcreteCommand implements Command {
     private Receiver receiver;

@@ -1,5 +1,9 @@
 package design.pattern;
 
+import design.pattern.command.Command;
+import design.pattern.command.ConcreteCommand;
+import design.pattern.command.Invoker;
+import design.pattern.command.Receiver;
 import org.junit.Test;
 
 import static org.mockito.Mockito.mock;
