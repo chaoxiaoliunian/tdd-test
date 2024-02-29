@@ -1,6 +1,6 @@
 package tdd.test.test10;
 
-public abstract class Money {
+public class Money {
 
     /**
      * 从dollar中上移
@@ -15,24 +15,32 @@ public abstract class Money {
 
 
     public static Money dollar(int i) {
-        return new Dollar(i,"USD");
+        return new Dollar(i, "USD");
     }
 
     public static Money franc(int i) {
-        return new Franc(i,"CHF");
+        return new Franc(i, "CHF");
     }
 
-    public abstract Money times(int multiplier);
     public boolean equals(Object object) {
         //从dollar中上移，除了修改类型还要记得修改变量名
         Money money = (Money) object;
         /**
          * 希望引入货币——这一金融领域更有意义的设计而不是Java对象域的，不过这里目前是非必要的引入，暂时不做变更
          */
-        return this.amount == money.amount && this.getClass().equals(object.getClass());
+        return this.amount == money.amount && this.currency.equals(money.currency);
     }
 
     public String currency() {
         return currency;
+    }
+
+    public String toString() {
+        return amount + " " + currency;
+    }
+
+    public Money times(int multiplier) {
+        //解决的是有副作用的问题
+        return new Money(amount * multiplier, currency);
     }
 }

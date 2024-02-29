@@ -1,7 +1,8 @@
 package test;
 
 import org.junit.Test;
-import tdd.test.test9.Money;
+import tdd.test.test10.Franc;
+import tdd.test.test10.Money;
 
 import static org.junit.Assert.*;
 
@@ -16,21 +17,34 @@ import static org.junit.Assert.*;
  * 为了解决第一个问题，得先有一个类似美元的瑞士法郎：5瑞士*2=10瑞士法郎 done
  * 消除瑞士法郎和美元的重复设计
  * 瑞士法郎的普通判等（因为要统一法郎和美元） done
- * 瑞士法郎的普通相乘（因为要统一法郎和美元）
+ * 瑞士法郎的普通相乘（因为要统一法郎和美元） done
  * 比较法郎对象和美元对象 done
- * 货币？
+ * 货币？ done
  * 删除testFrancMultiplication
  */
 public class Test10 {
     /**
+     * 需要消除times方法
+     * 首先是利用各自的构造函数消除工厂方法
+     * 然后将构造函数替换成Money
+     * 但是发现测试有问题，所以增加了对比Money和Franc的测试，然后通过修改equals函数让测试通过
+     * 然后将times上移
+     */
+    @Test
+    public void testDiffClassEquality() {
+        assertEquals(new Money(1, "CHF"), new Franc(1, "CHF"));
+    }
+
+    /**
      * 通过引入货币，可以消除重复的子类
      */
     @Test
-    public void testCurrency(){
-        assertEquals("USD",Money.dollar(1).currency());
-        assertEquals("CHF",Money.franc(1).currency());
+    public void testCurrency() {
+        assertEquals("USD", Money.dollar(1).currency());
+        assertEquals("CHF", Money.franc(1).currency());
 
     }
+
     /**
      * 5法郎*2=10法郎
      * 无法完成更大的测试，所以新增了一个小测试

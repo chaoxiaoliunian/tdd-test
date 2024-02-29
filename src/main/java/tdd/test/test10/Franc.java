@@ -9,9 +9,4 @@ public class Franc extends Money {
        super(amount,currency);
     }
 
-    public Money times(int multiplier) {
-        //解决的是有副作用的问题
-        return Money.franc(amount * multiplier);
-    }
-
 }
