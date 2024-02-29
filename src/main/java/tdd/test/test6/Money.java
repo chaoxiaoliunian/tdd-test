@@ -1,4 +1,4 @@
-package tdd.test.test5;
+package tdd.test.test6;
 
 public class Money {
     /**

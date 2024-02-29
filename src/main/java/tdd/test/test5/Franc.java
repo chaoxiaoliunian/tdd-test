@@ -1,10 +1,10 @@
 package tdd.test.test5;
 
-public class Franc extends Money{
+public class Franc {
     /**
-     * amount是完全一致的直接上移就行
+     * 因为equals的引入，解决了amount的私有性问题
      */
-   // private int amount;
+    private int amount;
 
     public Franc(int amount) {
         this.amount = amount;
@@ -15,4 +15,12 @@ public class Franc extends Money{
         return new Franc(amount * multiplier);
     }
 
+    /**
+     * 补充equals复合值对象的规范
+     */
+    public boolean equals(Object object) {
+        //解决了equals相等的问题
+        Franc dollar = (Franc) object;
+        return this.amount == dollar.amount;
+    }
 }

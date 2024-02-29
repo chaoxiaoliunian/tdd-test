@@ -1,8 +1,8 @@
 package test;
 
 import org.junit.Test;
-import tdd.test.test5.Dollar;
-import tdd.test.test5.Franc;
+import tdd.test.test6.Dollar;
+import tdd.test.test6.Franc;
 
 import static org.junit.Assert.*;
 
