@@ -1,8 +1,7 @@
 package test;
 
 import org.junit.Test;
-import tdd.test.test8.Franc;
-import tdd.test.test8.Money;
+import tdd.test.test9.Money;
 
 import static org.junit.Assert.*;
 
@@ -20,26 +19,36 @@ import static org.junit.Assert.*;
  * 瑞士法郎的普通相乘（因为要统一法郎和美元）
  * 比较法郎对象和美元对象 done
  * 货币？
- * 新增：删除testFrancMultiplication
+ * 删除testFrancMultiplication
  */
-public class Test8 {
+public class Test9 {
     /**
-     *  5法郎*2=10法郎
-     *  无法完成更大的测试，所以新增了一个小测试
-     *  无所顾忌的复制粘贴测试
-     *  无所顾忌的复制粘贴实现
-     *  需要进一步的消除重复设计
+     * 通过引入货币，可以消除重复的子类
+     */
+    @Test
+    public void testCurrency(){
+        assertEquals("USD",Money.dollar(1).currency());
+        assertEquals("CHF",Money.franc(1).currency());
+
+    }
+    /**
+     * 5法郎*2=10法郎
+     * 无法完成更大的测试，所以新增了一个小测试
+     * 无所顾忌的复制粘贴测试
+     * 无所顾忌的复制粘贴实现
+     * 需要进一步的消除重复设计
      */
     @Test
     public void testFrancMultiplication() {
-        Franc five = new Franc(5);
-        assertEquals(new Franc(10), five.times(2));
-        assertEquals(new Franc(15), five.times(3));
+        Money five = Money.franc(5);
+        assertEquals(Money.franc(10), five.times(2));
+        assertEquals(Money.franc(15), five.times(3));
     }
+
     /**
-     *  5美元*2=10美元
-     *  突出一个任务分解和小步子原理：
-     *  如何消除times呢？ 将方法的签名统一，利用工厂消除了dollar的外部引用。至少将方法的签名移动到了父类中
+     * 5美元*2=10美元
+     * 突出一个任务分解和小步子原理：
+     * 如何消除times呢？ 将方法的签名统一，利用工厂消除了dollar的外部引用。至少将方法的签名移动到了父类中
      */
     @Test
     public void testMultiplication() {
@@ -67,12 +76,12 @@ public class Test8 {
          * 为了将equals替换掉法郎，需要先建立测试，然后就可以让法郎继承money了
          *
          */
-        assertTrue(new Franc(5).equals(new Franc(5)));
-        assertFalse(new Franc(5).equals(new Franc(6)));
+        assertTrue(Money.franc(5).equals(Money.franc(5)));
+        assertFalse(Money.franc(5).equals(Money.franc(6)));
         /**
          *这里先用getClass解决两种货币的比较，除非有更好的动机否则不要引入更多的设计
          */
-        assertFalse(new Franc(5).equals(Money.dollar(5)));
+        assertFalse(Money.franc(5).equals(Money.dollar(5)));
 
     }
 }
