@@ -1,9 +1,10 @@
 package test;
 
 import org.junit.Test;
-import tdd.test.test12.Bank;
-import tdd.test.test12.Expression;
-import tdd.test.test12.Money;
+import tdd.test.test13.Bank;
+import tdd.test.test13.Expression;
+import tdd.test.test13.Money;
+import tdd.test.test13.Sum;
 
 import static org.junit.Assert.*;
 
@@ -28,25 +29,64 @@ import static org.junit.Assert.*;
  * 新的清单
  * 当瑞士法郎与美元的汇率为2：1,5美元+10瑞士法郎=10美元
  * 5美元+5美元=10美元
+ * 从5美元+5美元返回一个Money对象
+ * Bank.reduce(Money) done
+ * 带换算的Reduce Money
+ * Reduce(Bank,String)
+ *
  */
-public class Test12 {
+public class Test13 {
+
+    /**
+     * 让bank除了表达式外 还可以支持money
+     */
+    @Test
+    public void testReduceMoney(){
+        Bank bank=new Bank();
+        Money result=bank.reduce(Money.dollar(1),"USD");
+        assertEquals(Money.dollar(1),result);
+    }
+    /**
+     * 当都是美元相加时，bank+sum可以正确计算
+     */
+    @Test
+    public void testReduceSum() {
+        Sum sum = new Sum(Money.dollar(4), Money.dollar(3));
+        Bank bank = new Bank();
+        Money result = bank.reduce(sum, "USD");
+        assertEquals(Money.dollar(7), result);
+    }
+
+    /**
+     *sum用来记录表达式的
+     *
+     */
+    @Test
+    public void testPlusReturnSum() {
+        Money five = Money.dollar(5);
+        Expression expression = five.plus(five);
+        Sum sum = (Sum) expression;
+        assertEquals(five, sum.augend);
+        assertEquals(five, sum.addend);
+    }
 
     /**
      * 5美元+5美元=10美元
-     * 搞一个未完成的设计：bank负责惰性求值，sum负责记录表达式
+     *  bank.reduce需要执行表达式
      */
     @Test
-    public void testSimpleAddition(){
+    public void testSimpleAddition() {
 //        Money sum=Money.dollar(5).plus(Money.dollar(5));
 //        assertEquals(Money.dollar(10),sum);
 
-        Money five=Money.dollar(5);
-        Expression sum=five.plus(five);
-        Bank bank=new Bank();
-        Money reduced=bank.reduce(sum,"USD");
-        assertEquals(Money.dollar(10),reduced);
+        Money five = Money.dollar(5);
+        Expression sum = five.plus(five);
+        Bank bank = new Bank();
+        Money reduced = bank.reduce(sum, "USD");
+        assertEquals(Money.dollar(10), reduced);
 
     }
+
     /**
      * 通过引入货币，可以消除重复的子类
      */
