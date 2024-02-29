@@ -18,10 +18,10 @@ import static org.junit.Assert.*;
  * 瑞士法郎的普通判等（因为要统一法郎和美元） done
  * 瑞士法郎的普通相乘（因为要统一法郎和美元）
  * 比较法郎对象和美元对象 done
- * 货币 done
+ * 货币？
  * 删除testFrancMultiplication
  */
-public class Test9 {
+public class Test10 {
     /**
      * 通过引入货币，可以消除重复的子类
      */
