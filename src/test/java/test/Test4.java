@@ -6,7 +6,7 @@ import tdd.test.test4.Dollar;
 import static org.junit.Assert.*;
 /**
  * 当瑞士法郎与美元的汇率为2：1,5美元+10瑞士法郎=10美元
- * 5美元*2=10美元
+ * 5美元*2=10美元 done
  * 将amount定义为私有 done
  * Dollar副作用——外部操作可以直接改变类的状态？ done
  * 钱必须整数？
