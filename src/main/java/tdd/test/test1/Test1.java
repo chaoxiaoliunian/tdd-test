@@ -1,4 +1,4 @@
-package tdd.test.test0;//package test0;
+package tdd.test.test1;//package test0;
 //
 ///**
 // * 当瑞士法郎与美元的汇率为2：1,5美元+10瑞士法郎=10美元
