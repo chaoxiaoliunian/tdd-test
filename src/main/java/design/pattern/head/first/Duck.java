@@ -5,12 +5,19 @@ public abstract class Duck {
     protected QuackBehavior quack;
 
     public String performQuack() {
-        //return "I'm quacking!";
         return quack.quack();
     }
 
     public String performFly() {
         return flyBehavior.fly();
+    }
+
+    public void setFlyBehavior(FlyBehavior flyBehavior) {
+        this.flyBehavior = flyBehavior;
+    }
+
+    public void setQuack(QuackBehavior quack) {
+        this.quack = quack;
     }
 
     public abstract String display();

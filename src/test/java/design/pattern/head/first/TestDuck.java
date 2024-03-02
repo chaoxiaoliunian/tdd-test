@@ -1,13 +1,20 @@
 package design.pattern.head.first;
 
-import design.pattern.head.first.impl.FlyWithWings;
-import design.pattern.head.first.impl.MallardDuck;
-import design.pattern.head.first.impl.Quack;
+import design.pattern.head.first.impl.*;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
 
 public class TestDuck {
+    @Test
+    public void testDuckChBehavior() {
+        Duck duck = new ModelDuck();
+        assertEquals("I can't fly!", duck.performFly());
+        assertEquals("I'm quacking!", duck.performQuack());
+        duck.setFlyBehavior(new FlyRocketPowered());
+        assertEquals("I'm flying with a rocket!", duck.performFly());
+    }
+
     @Test
     public void testDuck() {
         Duck mallard = new MallardDuck();
@@ -15,15 +22,30 @@ public class TestDuck {
         assertEquals("I'm quacking!", mallard.performQuack());
         assertEquals("All ducks float,even decoys!", mallard.swim());
     }
+
     @Test
-    public void testQuack(){
-        QuackBehavior quackBehavior=new Quack();
-        assertEquals("I'm quacking!",quackBehavior.quack());
+    public void testModelDuck() {
+        ModelDuck modelDuck = new ModelDuck();
+        assertEquals("I can't fly!", modelDuck.performFly());
+        assertEquals("I'm quacking!", modelDuck.performQuack());
     }
+
+    @Test
+    public void testFly() {
+        assertEquals("I can't fly!", new FlyNoWay().fly());
+        assertEquals("I'm flying with a rocket!", new FlyRocketPowered().fly());
+    }
+
+    @Test
+    public void testQuack() {
+        assertEquals("I'm quacking!", new Quack().quack());
+        assertEquals("<<Silence>>", new MuteQuack().quack());
+    }
+
     @Test
     public void testFlying() {
-        FlyBehavior flyBehavior=new FlyWithWings();
-        assertEquals("I'm flying!",flyBehavior.fly());
+        FlyBehavior flyBehavior = new FlyWithWings();
+        assertEquals("I'm flying!", flyBehavior.fly());
     }
 
     @Test
