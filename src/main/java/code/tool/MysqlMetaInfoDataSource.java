@@ -16,6 +16,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * @author qishaojun
@@ -104,12 +105,41 @@ public class MysqlMetaInfoDataSource implements MetaInfoDataSource {
         return new ClassMetaInfo(getClassName(tableName), tableComment, fields);
     }
 
+    @Override
+    public ClassMetaInfo getClassMetaInfoOfView(String viewName) {
+        //获取到所有的基础表
+        ClassMetaInfo classMetaInfo = getClassMetaInfo(viewName);
+        List<String> baseTables = new ArrayList<>();
+        //遍历基础表，获取到基础表的信息
+        getBaseTables(viewName, baseTables);
+        //遍历所有基础表，拼装视图的注释
+        //遍历所有基础表，补充所有字段的注释
+        StringBuilder viewComment = new StringBuilder();
+        Map<String, FieldMetaInfo> viewFieldMap = classMetaInfo.getFieldMap();
+        List<FieldMetaInfo> fieldMetaInfoList = new ArrayList<>(classMetaInfo.fields().size());
+        List<FieldMetaInfo> totalFieldMetaInfoList = new ArrayList<>();
+        baseTables.forEach(tableName -> {
+            ClassMetaInfo subClassMetaInfo = getClassMetaInfo(tableName);
+            //拼装基础表的注释信息作为视图的注释信息
+            viewComment.append(tableName).append(":").append(subClassMetaInfo.comment()).append(",");
+            //如基础表字段存在于视图字段中，则获取到指定字段的注释
+            totalFieldMetaInfoList.addAll(subClassMetaInfo.fields());
+
+        });
+        if (!viewComment.isEmpty()) {
+            viewComment.deleteCharAt(viewComment.length() - 1);
+        }
+        Map<String, FieldMetaInfo> totalFieldMetaInfoMap = totalFieldMetaInfoList.stream().collect(Collectors.toMap(FieldMetaInfo::name, e -> e, (v1, v2) -> v1));
+        viewFieldMap.forEach((k, v) -> fieldMetaInfoList.add(totalFieldMetaInfoMap.get(k)));
+        return new ClassMetaInfo(classMetaInfo.name(), viewComment.toString(), fieldMetaInfoList);
+    }
+
     /**
      * 获取视图的基础表
+     *
      * @param viewName 视图名称
-     * @return 基础表列表
      */
-    public List<String> getBaseTables(String viewName) {
+    private void getBaseTables(String viewName, List<String> baseTables) {
         List<String> tableNames = new ArrayList<>();
         String tableSimpleName = viewName;
         String schemaName = schema;
@@ -119,6 +149,7 @@ public class MysqlMetaInfoDataSource implements MetaInfoDataSource {
         }
         ResultSet rs = null;
         try {
+            //select * from INFORMATION_SCHEMA.VIEWS where  TABLE_NAME='view_rental_customer_payment';
             String sql = "select * from INFORMATION_SCHEMA.VIEWS where TABLE_SCHEMA=? and TABLE_NAME=?;";
             PreparedStatement preparedStatement = con.prepareStatement(sql);
             preparedStatement.setString(1, schemaName);
@@ -129,10 +160,40 @@ public class MysqlMetaInfoDataSource implements MetaInfoDataSource {
             }
         } catch (SQLException e) {
             log.error("get view table error", e);
+        } finally {
+            try {
+                rs.close();
+            } catch (SQLException e) {
+                log.error("rs close fail", e);
+            }
         }
-        //获取每个表的基础定义
-        //根据视图中的字段，获取基础表的字段注释
-        return tableNames;
+        tableNames.forEach(tableName -> {
+            if (isView(tableName)) {
+                getBaseTables(tableName, baseTables);
+            } else {
+                baseTables.add(tableName);
+            }
+        });
+    }
+
+    private boolean isView(String viewName) {
+        String tableSimpleName = viewName;
+        String schemaName = schema;
+        if (viewName.contains(SPLITTER)) {
+            schemaName = viewName.split(SPLITTER_REX)[0];
+            tableSimpleName = viewName.split(SPLITTER_REX)[1];
+        }
+        ResultSet rs = null;
+        String tableType = "";
+        try {
+            rs = con.getMetaData().getTables(null, schemaName, tableSimpleName, new String[]{"TABLE", "VIEW"});
+            if (rs.next()) {
+                tableType = rs.getString("TABLE_TYPE");
+            }
+        } catch (SQLException e) {
+            log.error("get table type fail", e);
+        }
+        return "VIEW".equals(tableType);
     }
 
     private List<String> getAllTableNameBySQL(String sql) {
@@ -144,7 +205,7 @@ public class MysqlMetaInfoDataSource implements MetaInfoDataSource {
         Map<TableStat.Name, TableStat> tables = visitor.getTables();
         List<String> allTableName = new ArrayList<>();
         for (TableStat.Name t : tables.keySet()) {
-            allTableName.add(t.getName());
+            allTableName.add(t.getName().replaceAll("`", ""));
         }
         return allTableName;
     }

@@ -75,7 +75,13 @@ public class CodeGeneratorTest {
     @Test
     public void testViewComment() {
         //SELECT TABLE_NAME FROM INFORMATION_SCHEMA.VIEW_TABLE_USAGE WHERE VIEW_NAME = 'view_customer_payment';
-        ClassMetaInfo classMetaInfo2 = dataSource.getClassMetaInfo("sakila.view_customer_payment");
+        //create view view_rental_customer_payment as select a.rental_id,a.rental_date,a.inventory_id,b.* from rental a,view_customer_payment b where a.`customer_id`=b.`customer_id`;
+        ClassMetaInfo classMetaInfo2 = dataSource.getClassMetaInfoOfView("sakila.view_rental_customer_payment");
+        assertEquals("payment_id", classMetaInfo2.fields().get(12).name());
+        //视图的备注集成了各个基础表的备注
+        assertEquals("sakila.rental:,sakila.customer:顾客,sakila.payment:支付", classMetaInfo2.comment());
+        //视图的字段备注是各个基础表的备注
+        assertEquals("支付id", classMetaInfo2.fields().get(12).remarks());
 
     }
 
