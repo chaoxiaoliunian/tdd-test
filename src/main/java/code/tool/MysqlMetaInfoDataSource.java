@@ -2,6 +2,7 @@ package code.tool;
 
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
+import lombok.extern.slf4j.Slf4j;
 
 import java.sql.*;
 import java.util.HashMap;
@@ -11,8 +12,9 @@ import java.util.Map;
 /**
  * @author qishaojun
  */
+@Slf4j
 public class MysqlMetaInfoDataSource implements MetaInfoDataSource {
-    static Connection con; // 声明Connection对象
+    static Connection con;
     public static String user = "root";
     public static String password = "qishaojun1234";
     public static String schema = "mysql";
@@ -26,20 +28,20 @@ public class MysqlMetaInfoDataSource implements MetaInfoDataSource {
         typeMap.put("MEDIUMBLOB", "byte[]");
     }
 
-    public static Connection getConnection() { // 建立返回值为Connection的方法
-        try { // 加载数据库驱动类
+    public static Connection getConnection() {
+        try {
             Class.forName(driver);
-            System.out.println("数据库驱动加载成功");
+            log.info("driver load success");
         } catch (ClassNotFoundException e) {
-            e.printStackTrace();
+            log.error("driver load fail", e);
         }
-        try { // 通过访问数据库的URL获取数据库连接对象
+        try {
             con = DriverManager.getConnection("jdbc:mysql://localhost:3306/" + schema + "?useUnicode=true&characterEncoding=gbk", user, password);
-            System.out.println("数据库连接成功");
+            log.info("get conn success");
         } catch (SQLException e) {
-            e.printStackTrace();
+            log.error("get conn fail", e);
         }
-        return con; // 按方法要求返回一个Connection对象
+        return con;
     }
 
     @Override
@@ -55,13 +57,13 @@ public class MysqlMetaInfoDataSource implements MetaInfoDataSource {
                 fields.add(new FieldMetaInfo(name, getType(type)));
             }
         } catch (SQLException e) {
-            throw new RuntimeException(e);
+            log.error("get columns fail", e);
         } finally {
             try {
                 assert rs != null;
                 rs.close();
             } catch (SQLException e) {
-                throw new RuntimeException(e);
+                log.error("rs close fail", e);
             }
         }
         return fields;
