@@ -68,6 +68,8 @@ public class CodeGeneratorTest {
     public void testComment() {
         ClassMetaInfo classMetaInfo = dataSource.getClassMetaInfo("sakila.customer");
         assertEquals("顾客", classMetaInfo.comment());
+        ClassMetaInfo classMetaInfo2 = dataSource.getClassMetaInfo("sakila.payment");
+        assertEquals("支付id", classMetaInfo2.fields().get(0).remarks());
     }
 
     @Test

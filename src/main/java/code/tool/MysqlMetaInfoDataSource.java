@@ -21,6 +21,8 @@ public class MysqlMetaInfoDataSource implements MetaInfoDataSource {
     public static String schema = "mysql";
     public static String driver = "com.mysql.cj.jdbc.Driver";
     public static final String SPLITTER = ".";
+    public static final String SPLITTER_REX = "\\.";
+
     static Map<String, String> typeMap = new HashMap<>();
 
     static {
@@ -60,16 +62,23 @@ public class MysqlMetaInfoDataSource implements MetaInfoDataSource {
 
     @Override
     public ClassMetaInfo getClassMetaInfo(String tableName) {
+        String tableSimpleName = tableName;
+        String schemaName = schema;
+        if (tableName.contains(SPLITTER)) {
+            schemaName = tableName.split(SPLITTER_REX)[0];
+            tableSimpleName = tableName.split(SPLITTER_REX)[1];
+        }
         List<FieldMetaInfo> fields = Lists.newArrayList();
         String tableComment = "";
         ResultSet rs = null;
         try {
             DatabaseMetaData databaseMetaData = con.getMetaData();
-            rs = databaseMetaData.getTables(null, schema, tableName, new String[]{"TABLE", "VIEW"});
+            rs = databaseMetaData.getTables(null, schemaName, tableSimpleName, new String[]{"TABLE", "VIEW"});
             rs.next();
             tableComment = rs.getString("REMARKS");
             rs.close();
-            rs = databaseMetaData.getColumns(null, schema, tableName, "%");
+            databaseMetaData = con.getMetaData();
+            rs = databaseMetaData.getColumns(null, schemaName, tableSimpleName, "%");
             while (rs.next()) {
                 String name = rs.getString("COLUMN_NAME");
                 String type = rs.getString("TYPE_NAME");
