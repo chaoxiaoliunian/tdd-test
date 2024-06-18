@@ -1,6 +1,5 @@
 package code.tool;
 
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -8,7 +7,7 @@ import java.util.Map;
 /**
  * @author qishaojun
  */
-public record ClassMetaInfo(
+public record TableMetaInfo(
         String name,
         String comment,
         List<FieldMetaInfo> fields) {

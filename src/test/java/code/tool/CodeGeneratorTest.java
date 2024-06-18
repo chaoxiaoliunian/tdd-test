@@ -34,26 +34,26 @@ public class CodeGeneratorTest {
     @Test
     public void testClassGenerator() {
         //能正常生成视图对应的类
-        ClassMetaInfo classMetaInfo = dataSource.getClassMetaInfo("view_events");
-        assertEquals("ViewEvents", classMetaInfo.name());
-        assertTableMetaInfo(classMetaInfo);
+        TableMetaInfo tableMetaInfo = dataSource.getTableMetaInfo("view_events");
+        assertEquals("ViewEvents", tableMetaInfo.name());
+        assertTableMetaInfo(tableMetaInfo);
         //能正常生成表对应的类
-        ClassMetaInfo classMetaInfo2 = dataSource.getClassMetaInfo("events");
-        assertEquals("Events", classMetaInfo2.name());
-        assertTableMetaInfo(classMetaInfo2);
+        TableMetaInfo tableMetaInfo2 = dataSource.getTableMetaInfo("events");
+        assertEquals("Events", tableMetaInfo2.name());
+        assertTableMetaInfo(tableMetaInfo2);
 
-        ClassMetaInfo classMetaInfo3 = dataSource.getClassMetaInfo("sakila.customer");
-        assertEquals("Customer", classMetaInfo3.name());
-        assertEquals(9, classMetaInfo3.fields().size());
+        TableMetaInfo tableMetaInfo3 = dataSource.getTableMetaInfo("sakila.customer");
+        assertEquals("Customer", tableMetaInfo3.name());
+        assertEquals(9, tableMetaInfo3.fields().size());
     }
 
-    private static void assertTableMetaInfo(ClassMetaInfo classMetaInfo) {
-        assertEquals("rev", classMetaInfo.fields().get(0).name());
-        assertEquals("String", classMetaInfo.fields().get(0).type());
-        assertEquals("partition", classMetaInfo.fields().get(2).name());
-        assertEquals("Integer", classMetaInfo.fields().get(2).type());
-        assertEquals("event", classMetaInfo.fields().get(4).name());
-        assertEquals("byte[]", classMetaInfo.fields().get(4).type());
+    private static void assertTableMetaInfo(TableMetaInfo tableMetaInfo) {
+        assertEquals("rev", tableMetaInfo.fields().get(0).name());
+        assertEquals("String", tableMetaInfo.fields().get(0).type());
+        assertEquals("partition", tableMetaInfo.fields().get(2).name());
+        assertEquals("Integer", tableMetaInfo.fields().get(2).type());
+        assertEquals("event", tableMetaInfo.fields().get(4).name());
+        assertEquals("byte[]", tableMetaInfo.fields().get(4).type());
     }
 
     /**
@@ -66,22 +66,22 @@ public class CodeGeneratorTest {
      */
     @Test
     public void testComment() {
-        ClassMetaInfo classMetaInfo = dataSource.getClassMetaInfo("sakila.customer");
-        assertEquals("顾客", classMetaInfo.comment());
-        ClassMetaInfo classMetaInfo2 = dataSource.getClassMetaInfo("sakila.payment");
-        assertEquals("支付id", classMetaInfo2.fields().get(0).remarks());
+        TableMetaInfo tableMetaInfo = dataSource.getTableMetaInfo("sakila.customer");
+        assertEquals("顾客", tableMetaInfo.comment());
+        TableMetaInfo tableMetaInfo2 = dataSource.getTableMetaInfo("sakila.payment");
+        assertEquals("支付id", tableMetaInfo2.fields().get(0).remarks());
     }
 
     @Test
     public void testViewComment() {
         //SELECT TABLE_NAME FROM INFORMATION_SCHEMA.VIEW_TABLE_USAGE WHERE VIEW_NAME = 'view_customer_payment';
         //create view view_rental_customer_payment as select a.rental_id,a.rental_date,a.inventory_id,b.* from rental a,view_customer_payment b where a.`customer_id`=b.`customer_id`;
-        ClassMetaInfo classMetaInfo2 = dataSource.getClassMetaInfoOfView("sakila.view_rental_customer_payment");
-        assertEquals("payment_id", classMetaInfo2.fields().get(12).name());
+        TableMetaInfo tableMetaInfo2 = dataSource.getClassMetaInfoOfView("sakila.view_rental_customer_payment");
+        assertEquals("payment_id", tableMetaInfo2.fields().get(12).name());
         //视图的备注集成了各个基础表的备注
-        assertEquals("sakila.rental:,sakila.customer:顾客,sakila.payment:支付", classMetaInfo2.comment());
+        assertEquals("sakila.rental:,sakila.customer:顾客,sakila.payment:支付", tableMetaInfo2.comment());
         //视图的字段备注是各个基础表的备注
-        assertEquals("支付id", classMetaInfo2.fields().get(12).remarks());
+        assertEquals("支付id", tableMetaInfo2.fields().get(12).remarks());
 
     }
 
