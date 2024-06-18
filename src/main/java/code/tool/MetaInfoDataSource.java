@@ -7,5 +7,5 @@ public interface MetaInfoDataSource {
 
     TableMetaInfo getTableMetaInfo(String viewEvents);
 
-    TableMetaInfo getClassMetaInfoOfView(String viewName);
+    TableMetaInfo getTableMetaInfoOfView(String viewName);
 }

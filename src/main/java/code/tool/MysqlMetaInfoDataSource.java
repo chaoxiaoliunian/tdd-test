@@ -34,6 +34,7 @@ public class MysqlMetaInfoDataSource implements MetaInfoDataSource {
 
     static {
         con = getConnection();
+        //TODO:扩容类型
         typeMap.put("VARCHAR", "String");
         typeMap.put("INT", "Integer");
         typeMap.put("MEDIUMBLOB", "byte[]");
@@ -47,6 +48,7 @@ public class MysqlMetaInfoDataSource implements MetaInfoDataSource {
             log.error("driver load fail", e);
         }
         try {
+            //TODO：支持oracle
             con = DriverManager.getConnection("jdbc:mysql://localhost:3306/" + schema + "?useUnicode=true&characterEncoding=gbk&useInformationSchema=true", user, password);
             log.info("get conn success");
         } catch (SQLException e) {
@@ -105,7 +107,7 @@ public class MysqlMetaInfoDataSource implements MetaInfoDataSource {
     }
 
     @Override
-    public TableMetaInfo getClassMetaInfoOfView(String viewName) {
+    public TableMetaInfo getTableMetaInfoOfView(String viewName) {
         //获取到所有的基础表
         TableMetaInfo tableMetaInfo = getTableMetaInfo(viewName);
         List<String> baseTables = new ArrayList<>();
@@ -148,6 +150,7 @@ public class MysqlMetaInfoDataSource implements MetaInfoDataSource {
         }
         ResultSet rs = null;
         try {
+            //TODO 支持oracle查询基础表结构
             //select * from INFORMATION_SCHEMA.VIEWS where  TABLE_NAME='view_rental_customer_payment';
             String sql = "select * from INFORMATION_SCHEMA.VIEWS where TABLE_SCHEMA=? and TABLE_NAME=?;";
             PreparedStatement preparedStatement = con.prepareStatement(sql);
