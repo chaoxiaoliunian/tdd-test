@@ -74,6 +74,10 @@ public class CodeGeneratorTest {
 
     @Test
     public void testViewComment() {
+        //SELECT TABLE_NAME FROM INFORMATION_SCHEMA.VIEW_TABLE_USAGE WHERE VIEW_NAME = 'view_customer_payment';
+        ClassMetaInfo classMetaInfo2 = dataSource.getClassMetaInfo("sakila.view_customer_payment");
 
     }
+
+
 }
