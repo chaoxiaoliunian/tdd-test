@@ -14,6 +14,6 @@ public class CodeGenerator {
 
     public ClassMetaInfo getClassMetaInfo(String table) {
         String tableName = CaseFormat.UPPER_UNDERSCORE.to(CaseFormat.UPPER_CAMEL, table);
-        return new ClassMetaInfo(tableName,dataSource.getTableType(table), dataSource.getColumns(table));
+        return new ClassMetaInfo(tableName, dataSource.getColumns(table));
     }
 }

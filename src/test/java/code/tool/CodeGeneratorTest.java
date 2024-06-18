@@ -37,21 +37,19 @@ public class CodeGeneratorTest {
         //能正常生成视图对应的类
         ClassMetaInfo classMetaInfo = codeGenerator.getClassMetaInfo("view_events");
         assertEquals("ViewEvents", classMetaInfo.getName());
-        assertEquals(TableType.VIEW, classMetaInfo.getTableType());
         assertTableMetaInfo(classMetaInfo);
         //能正常生成表对应的类
         ClassMetaInfo classMetaInfo2 = codeGenerator.getClassMetaInfo("events");
         assertEquals("Events", classMetaInfo2.getName());
-        assertEquals(TableType.TABLE, classMetaInfo2.getTableType());
         assertTableMetaInfo(classMetaInfo2);
     }
 
     private static void assertTableMetaInfo(ClassMetaInfo classMetaInfo) {
-        assertEquals("rev", classMetaInfo.getFields().get(0).getName());
-        assertEquals("String", classMetaInfo.getFields().get(0).getType());
-        assertEquals("partition", classMetaInfo.getFields().get(2).getName());
-        assertEquals("Integer", classMetaInfo.getFields().get(2).getType());
-        assertEquals("event", classMetaInfo.getFields().get(4).getName());
-        assertEquals("byte[]", classMetaInfo.getFields().get(4).getType());
+        assertEquals("rev", classMetaInfo.getFields().get(0).name());
+        assertEquals("String", classMetaInfo.getFields().get(0).type());
+        assertEquals("partition", classMetaInfo.getFields().get(2).name());
+        assertEquals("Integer", classMetaInfo.getFields().get(2).type());
+        assertEquals("event", classMetaInfo.getFields().get(4).name());
+        assertEquals("byte[]", classMetaInfo.getFields().get(4).type());
     }
 }
