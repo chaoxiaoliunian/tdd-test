@@ -14,6 +14,11 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
     <dependencies>
+        <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+            <version>31.1-jre</version>
+        </dependency>
         <!-- junit -->
         <dependency>
             <groupId>junit</groupId>
@@ -43,7 +48,7 @@
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
-            <version>1.18.22</version> <!-- 请根据实际情况选择合适的版本 -->
+            <version>1.18.30</version> <!-- 请根据实际情况选择合适的版本 -->
             <scope>provided</scope> <!-- 或者使用compile，取决于你的使用场景 -->
         </dependency>
     </dependencies>
@@ -58,6 +63,27 @@
         </extensions>
 
         <plugins>
+            <plugin>
+                <groupId>org.mybatis.generator</groupId>
+                <artifactId>mybatis-generator-maven-plugin</artifactId>
+                <version>1.4.0</version>
+                <!--插件设置-->
+                <configuration>
+                    <!--允许移动生成的文件-->
+                    <verbose>true</verbose>
+                    <!--启用覆盖-->
+                    <overwrite>true</overwrite>
+                    <!--自动生成配置 如果名字是generatorConfig.xml可以省略配置-->
+                    <!--<configurationFile>src/main/resources/generatorConfig.xml</configurationFile>-->
+                </configuration>
+                <dependencies>
+                    <dependency>
+                        <groupId>mysql</groupId>
+                        <artifactId>mysql-connector-java</artifactId>
+                        <version>8.0.28</version>
+                    </dependency>
+                </dependencies>
+            </plugin>
             <plugin>
                 <groupId>org.xolstice.maven.plugins</groupId>
                 <artifactId>protobuf-maven-plugin</artifactId>

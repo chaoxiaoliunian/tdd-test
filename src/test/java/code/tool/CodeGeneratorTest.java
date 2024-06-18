@@ -1,6 +1,12 @@
-package code.tool.datasource;
+package code.tool;
+
+import org.junit.Test;
+
+import static org.junit.Assert.assertEquals;
 
 public class CodeGeneratorTest {
+    MetaInfoDataSource dataSource=new MysqlMetaInfoDataSource();
+    CodeGenerator codeGenerator=new CodeGenerator(dataSource);
     /**
      *todo:代码生成器完整功能
      * 核心业务功能：
@@ -13,24 +19,39 @@ public class CodeGeneratorTest {
      * 3.可启动一个web，引入后，访问网页使用功能。
      */
     /**
-     *代码生成器简版功能
+     * 代码生成器简版功能
      * 核心业务功能：
-     * 根据Mysql视图和表生成Java类，且Java类字段带有注释。
+     * 1.根据Mysql视图和表生成Java类，且Java类字段带有注释。
+     * 根据表名称能够生成类
+     * 根据字段能生成属性
+     * 根据字段能生成get，set方法
+     * 根据字段能生成注释
+     * 能够生成继承BaseTable，COLUMNS属性，无参构造方法，序列化
      * 设计：
      * 1.数据源和代码生成方法都是插件式的，copy到插件目录下就能自动运行。
      * 2.可通过main方法指定数据库地址、库，表运行。
      */
-    public static void main(String[] args) {
-        String url = "jdbc:mysql://localhost:3306/mysql?useUnicode=true&characterEncoding=gbk";
-        String user = "root";
-        String password = "qishaojun1234";
-        String driver = "com.mysql.cj.jdbc.Driver";
-        String database = "test";
-        String table = "test";
-        String packageName = "code.tool.datasource";
-        String className = "Test";
-        String filePath = "D:\\test\\";
-        String fileName = "Test.java";
-        String comment= "测试";
+
+    @Test
+    public void testClassGenerator() {
+        //能正常生成视图对应的类
+        ClassMetaInfo classMetaInfo = codeGenerator.getClassMetaInfo("view_events");
+        assertEquals("ViewEvents", classMetaInfo.getName());
+        assertEquals(TableType.VIEW, classMetaInfo.getTableType());
+        assertTableMetaInfo(classMetaInfo);
+        //能正常生成表对应的类
+        ClassMetaInfo classMetaInfo2 = codeGenerator.getClassMetaInfo("events");
+        assertEquals("Events", classMetaInfo2.getName());
+        assertEquals(TableType.TABLE, classMetaInfo2.getTableType());
+        assertTableMetaInfo(classMetaInfo2);
+    }
+
+    private static void assertTableMetaInfo(ClassMetaInfo classMetaInfo) {
+        assertEquals("rev", classMetaInfo.getFields().get(0).getName());
+        assertEquals("String", classMetaInfo.getFields().get(0).getType());
+        assertEquals("partition", classMetaInfo.getFields().get(2).getName());
+        assertEquals("Integer", classMetaInfo.getFields().get(2).getType());
+        assertEquals("event", classMetaInfo.getFields().get(4).getName());
+        assertEquals("byte[]", classMetaInfo.getFields().get(4).getType());
     }
 }

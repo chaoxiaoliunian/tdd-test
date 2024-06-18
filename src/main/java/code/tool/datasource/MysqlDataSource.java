@@ -4,12 +4,12 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 
-public class MysqlDataSource implements DataSource { // 创建类Conn
+public class MysqlDataSource { // 创建类Conn
     Connection con; // 声明Connection对象
-    public static String user="root";
-    public static  String password="qishaojun1234";
-    public static String driver= "com.mysql.cj.jdbc.Driver";
-    @Override
+    public static String user = "root";
+    public static String password = "qishaojun1234";
+    public static String driver = "com.mysql.cj.jdbc.Driver";
+
     public Connection getConnection() { // 建立返回值为Connection的方法
         try { // 加载数据库驱动类
             Class.forName(driver);
@@ -25,8 +25,9 @@ public class MysqlDataSource implements DataSource { // 创建类Conn
         }
         return con; // 按方法要求返回一个Connection对象
     }
+
     public static void main(String[] args) { // 主方法，测试连接
-        DataSource c = new MysqlDataSource(); // 创建本类对象
+        MysqlDataSource c = new MysqlDataSource(); // 创建本类对象
         c.getConnection(); // 调用连接数据库的方法
     }
 }

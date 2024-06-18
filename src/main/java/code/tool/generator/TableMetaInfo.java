@@ -1,4 +1,4 @@
-package code.tool.datasource;
+package code.tool.generator;
 
 import lombok.Getter;
 
@@ -7,6 +7,5 @@ import java.util.LinkedHashMap;
 /**
  * @author qishaojun
  */
-@Getter
 public record TableMetaInfo(String tableName, LinkedHashMap<String, String> columnMap) {
 }
