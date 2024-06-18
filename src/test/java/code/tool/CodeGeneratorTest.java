@@ -5,8 +5,7 @@ import org.junit.Test;
 import static org.junit.Assert.assertEquals;
 
 public class CodeGeneratorTest {
-    MetaInfoDataSource dataSource=new MysqlMetaInfoDataSource();
-    CodeGenerator codeGenerator=new CodeGenerator(dataSource);
+    MetaInfoDataSource dataSource = new MysqlMetaInfoDataSource();
     /**
      *todo:代码生成器完整功能
      * 核心业务功能：
@@ -35,21 +34,44 @@ public class CodeGeneratorTest {
     @Test
     public void testClassGenerator() {
         //能正常生成视图对应的类
-        ClassMetaInfo classMetaInfo = codeGenerator.getClassMetaInfo("view_events");
-        assertEquals("ViewEvents", classMetaInfo.getName());
+        ClassMetaInfo classMetaInfo = dataSource.getClassMetaInfo("view_events");
+        assertEquals("ViewEvents", classMetaInfo.name());
         assertTableMetaInfo(classMetaInfo);
         //能正常生成表对应的类
-        ClassMetaInfo classMetaInfo2 = codeGenerator.getClassMetaInfo("events");
-        assertEquals("Events", classMetaInfo2.getName());
+        ClassMetaInfo classMetaInfo2 = dataSource.getClassMetaInfo("events");
+        assertEquals("Events", classMetaInfo2.name());
         assertTableMetaInfo(classMetaInfo2);
+
+        ClassMetaInfo classMetaInfo3 = dataSource.getClassMetaInfo("sakila.customer");
+        assertEquals("Customer", classMetaInfo3.name());
+        assertEquals(9, classMetaInfo3.fields().size());
     }
 
     private static void assertTableMetaInfo(ClassMetaInfo classMetaInfo) {
-        assertEquals("rev", classMetaInfo.getFields().get(0).name());
-        assertEquals("String", classMetaInfo.getFields().get(0).type());
-        assertEquals("partition", classMetaInfo.getFields().get(2).name());
-        assertEquals("Integer", classMetaInfo.getFields().get(2).type());
-        assertEquals("event", classMetaInfo.getFields().get(4).name());
-        assertEquals("byte[]", classMetaInfo.getFields().get(4).type());
+        assertEquals("rev", classMetaInfo.fields().get(0).name());
+        assertEquals("String", classMetaInfo.fields().get(0).type());
+        assertEquals("partition", classMetaInfo.fields().get(2).name());
+        assertEquals("Integer", classMetaInfo.fields().get(2).type());
+        assertEquals("event", classMetaInfo.fields().get(4).name());
+        assertEquals("byte[]", classMetaInfo.fields().get(4).type());
+    }
+
+    /**
+     * alter table customer comment '顾客';
+     * alter table payment comment '支付';
+     * alter table payment  modify column `payment_id` smallint(5) unsigned NOT NULL AUTO_INCREMENT comment '支付id';
+     * <p>
+     * create view view_customer_payment as
+     * select a.*,b.`payment_id`,b.`staff_id` from customer a,payment b where a.`customer_id`=b.`customer_id`;
+     */
+    @Test
+    public void testComment() {
+        ClassMetaInfo classMetaInfo = dataSource.getClassMetaInfo("sakila.customer");
+        assertEquals("顾客", classMetaInfo.comment());
+    }
+
+    @Test
+    public void testViewComment() {
+
     }
 }

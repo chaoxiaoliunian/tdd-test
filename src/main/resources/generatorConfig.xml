@@ -37,7 +37,27 @@
             <property name="enableSubPackages" value="true"/>
         </javaClientGenerator>
         <!--生成对应表及类名-->
-        <table tableName="view_events" domainObjectName="ViewEvents"
+<!--        <table tableName="view_events" domainObjectName="ViewEvents"-->
+<!--               enableInsert="true"-->
+<!--               enableSelectByPrimaryKey="true"-->
+<!--               enableCountByExample="true"-->
+<!--               enableSelectByExample="true"-->
+<!--               selectByExampleQueryId="true"-->
+<!--               enableUpdateByPrimaryKey="true"-->
+<!--               enableUpdateByExample="true"-->
+<!--               enableDeleteByPrimaryKey="true"-->
+<!--               enableDeleteByExample="true">-->
+<!--            &lt;!&ndash;useActualColumnNames:-->
+<!--            (1)如果设置为true,那么MBG会使用从数据库元数据获取的列名作为生成的实体对象的属性。-->
+<!--            (2)如果为false(默认值)，MGB将会尝试把返回的名称转换为驼峰形式。-->
+<!--            在这两种情况下，可以通过 元素显示指定，在这种情况下将会忽略这个（useActualColumnNames）属性。&ndash;&gt;-->
+<!--            <property name="useActualColumnNames" value="true"/>-->
+<!--            &lt;!&ndash; 数据库表主键 &ndash;&gt;-->
+<!--            <generatedKey column="id" sqlStatement="Mysql" identity="true" />-->
+<!--        </table>-->
+
+
+        <table tableName="sakila.customer" domainObjectName="Customer"
                enableInsert="true"
                enableSelectByPrimaryKey="true"
                enableCountByExample="true"
@@ -51,7 +71,7 @@
             (1)如果设置为true,那么MBG会使用从数据库元数据获取的列名作为生成的实体对象的属性。
             (2)如果为false(默认值)，MGB将会尝试把返回的名称转换为驼峰形式。
             在这两种情况下，可以通过 元素显示指定，在这种情况下将会忽略这个（useActualColumnNames）属性。-->
-            <property name="useActualColumnNames" value="true"/>
+            <property name="useActualColumnNames" value="false"/>
             <!-- 数据库表主键 -->
             <generatedKey column="id" sqlStatement="Mysql" identity="true" />
         </table>

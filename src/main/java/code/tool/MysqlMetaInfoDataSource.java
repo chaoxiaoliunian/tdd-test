@@ -1,5 +1,6 @@
 package code.tool;
 
+import com.google.common.base.CaseFormat;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
@@ -19,6 +20,7 @@ public class MysqlMetaInfoDataSource implements MetaInfoDataSource {
     public static String password = "qishaojun1234";
     public static String schema = "mysql";
     public static String driver = "com.mysql.cj.jdbc.Driver";
+    public static final String SPLITTER = ".";
     static Map<String, String> typeMap = new HashMap<>();
 
     static {
@@ -36,7 +38,7 @@ public class MysqlMetaInfoDataSource implements MetaInfoDataSource {
             log.error("driver load fail", e);
         }
         try {
-            con = DriverManager.getConnection("jdbc:mysql://localhost:3306/" + schema + "?useUnicode=true&characterEncoding=gbk", user, password);
+            con = DriverManager.getConnection("jdbc:mysql://localhost:3306/" + schema + "?useUnicode=true&characterEncoding=gbk&useInformationSchema=true", user, password);
             log.info("get conn success");
         } catch (SQLException e) {
             log.error("get conn fail", e);
@@ -44,17 +46,35 @@ public class MysqlMetaInfoDataSource implements MetaInfoDataSource {
         return con;
     }
 
+    private String getClassName(String table) {
+        if (table.contains(SPLITTER)) {
+            table = table.substring(table.lastIndexOf(SPLITTER) + 1);
+        }
+        return CaseFormat.UPPER_UNDERSCORE.to(CaseFormat.UPPER_CAMEL, table);
+    }
+
+    private String getType(String dbType) {
+        String type = typeMap.get(dbType);
+        return Strings.isNullOrEmpty(type) ? dbType : type;
+    }
+
     @Override
-    public List<FieldMetaInfo> getColumns(String table) {
+    public ClassMetaInfo getClassMetaInfo(String tableName) {
         List<FieldMetaInfo> fields = Lists.newArrayList();
+        String tableComment = "";
         ResultSet rs = null;
         try {
             DatabaseMetaData databaseMetaData = con.getMetaData();
-            rs = databaseMetaData.getColumns(null, schema, table, "%");
+            rs = databaseMetaData.getTables(null, schema, tableName, new String[]{"TABLE", "VIEW"});
+            rs.next();
+            tableComment = rs.getString("REMARKS");
+            rs.close();
+            rs = databaseMetaData.getColumns(null, schema, tableName, "%");
             while (rs.next()) {
                 String name = rs.getString("COLUMN_NAME");
                 String type = rs.getString("TYPE_NAME");
-                fields.add(new FieldMetaInfo(name, getType(type)));
+                String comment = rs.getString("REMARKS");
+                fields.add(new FieldMetaInfo(name, comment, getType(type)));
             }
         } catch (SQLException e) {
             log.error("get columns fail", e);
@@ -66,11 +86,6 @@ public class MysqlMetaInfoDataSource implements MetaInfoDataSource {
                 log.error("rs close fail", e);
             }
         }
-        return fields;
-    }
-
-    private String getType(String dbType) {
-        String type = typeMap.get(dbType);
-        return Strings.isNullOrEmpty(type) ? dbType : type;
+        return new ClassMetaInfo(getClassName(tableName), tableComment, fields);
     }
 }
