@@ -18,7 +18,7 @@ public class TestDoc {
     @ExcelProperty("方法/函数")
     private String method;
 
-    @ExcelProperty("整正常系/异常系")
+    @ExcelProperty("正常系/异常系")
     private String path;
 
     @ExcelProperty("前提条件")
