@@ -1,4 +1,7 @@
-package code.tool;
+package code.tool.model;
+
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -7,14 +10,17 @@ import java.util.Map;
 /**
  * @author qishaojun
  */
-public record TableMetaInfo(
-        String name,
-        String comment,
-        List<FieldMetaInfo> fields) {
+@Getter
+@AllArgsConstructor
+public class TableMetaInfo {
+    private String name;
+    private String comment;
+    private List<FieldMetaInfo> fields;
+
     public Map<String, FieldMetaInfo> getFieldMap() {
         Map<String, FieldMetaInfo> map = new LinkedHashMap<>(fields.size() * 2);
         for (FieldMetaInfo fieldMetaInfo : fields) {
-            map.put(fieldMetaInfo.name(), fieldMetaInfo);
+            map.put(fieldMetaInfo.getName(), fieldMetaInfo);
         }
         return map;
     }

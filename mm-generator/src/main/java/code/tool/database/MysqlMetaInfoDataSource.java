@@ -1,5 +1,7 @@
-package code.tool;
+package code.tool.database;
 
+import code.tool.model.FieldMetaInfo;
+import code.tool.model.TableMetaInfo;
 import com.alibaba.druid.sql.ast.SQLStatement;
 import com.alibaba.druid.sql.dialect.mysql.parser.MySqlStatementParser;
 import com.alibaba.druid.sql.dialect.mysql.visitor.MySqlSchemaStatVisitor;
@@ -24,7 +26,9 @@ import java.util.stream.Collectors;
 public class MysqlMetaInfoDataSource implements MetaInfoDataSource {
     static Connection con;
     public static String user = "root";
-    public static String password = "qishaojun1234";
+    //public static String password = "qishaojun1234";
+    public static String password = "root";
+
     public static String schema = "mysql";
     public static String driver = "com.mysql.cj.jdbc.Driver";
     public static final String SPLITTER = ".";
@@ -73,6 +77,7 @@ public class MysqlMetaInfoDataSource implements MetaInfoDataSource {
     public TableMetaInfo getTableMetaInfo(String tableName) {
         String tableSimpleName = tableName;
         String schemaName = schema;
+        //如包含.则拆分出数据库和表名称
         if (tableName.contains(SPLITTER)) {
             schemaName = tableName.split(SPLITTER_REX)[0];
             tableSimpleName = tableName.split(SPLITTER_REX)[1];
@@ -117,22 +122,22 @@ public class MysqlMetaInfoDataSource implements MetaInfoDataSource {
         //遍历所有基础表，补充所有字段的注释
         StringBuilder viewComment = new StringBuilder();
         Map<String, FieldMetaInfo> viewFieldMap = tableMetaInfo.getFieldMap();
-        List<FieldMetaInfo> fieldMetaInfoList = new ArrayList<>(tableMetaInfo.fields().size());
+        List<FieldMetaInfo> fieldMetaInfoList = new ArrayList<>(tableMetaInfo.getFields().size());
         List<FieldMetaInfo> totalFieldMetaInfoList = new ArrayList<>();
         baseTables.forEach(tableName -> {
             TableMetaInfo subTableMetaInfo = getTableMetaInfo(tableName);
             //拼装基础表的注释信息作为视图的注释信息
-            viewComment.append(tableName).append(":").append(subTableMetaInfo.comment()).append(",");
+            viewComment.append(tableName).append(":").append(subTableMetaInfo.getComment()).append(",");
             //如基础表字段存在于视图字段中，则获取到指定字段的注释
-            totalFieldMetaInfoList.addAll(subTableMetaInfo.fields());
+            totalFieldMetaInfoList.addAll(subTableMetaInfo.getFields());
 
         });
-        if (!viewComment.isEmpty()) {
+        if (viewComment.length() > 0) {
             viewComment.deleteCharAt(viewComment.length() - 1);
         }
-        Map<String, FieldMetaInfo> totalFieldMetaInfoMap = totalFieldMetaInfoList.stream().collect(Collectors.toMap(FieldMetaInfo::name, e -> e, (v1, v2) -> v1));
+        Map<String, FieldMetaInfo> totalFieldMetaInfoMap = totalFieldMetaInfoList.stream().collect(Collectors.toMap(FieldMetaInfo::getName, e -> e, (v1, v2) -> v1));
         viewFieldMap.forEach((k, v) -> fieldMetaInfoList.add(totalFieldMetaInfoMap.get(k)));
-        return new TableMetaInfo(tableMetaInfo.name(), viewComment.toString(), fieldMetaInfoList);
+        return new TableMetaInfo(tableMetaInfo.getName(), viewComment.toString(), fieldMetaInfoList);
     }
 
     /**
@@ -164,7 +169,9 @@ public class MysqlMetaInfoDataSource implements MetaInfoDataSource {
             log.error("get view table error", e);
         } finally {
             try {
-                rs.close();
+                if (rs != null) {
+                    rs.close();
+                }
             } catch (SQLException e) {
                 log.error("rs close fail", e);
             }
