@@ -1,9 +1,11 @@
 package tool.model;
 
+import com.alibaba.excel.annotation.ExcelIgnore;
 import com.alibaba.excel.annotation.ExcelProperty;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.ToString;
 
 /**
  * @author qishaojun
@@ -11,9 +13,15 @@ import lombok.Setter;
 @Getter
 @Setter
 @EqualsAndHashCode
+@ToString
 public class TestDoc {
     @ExcelProperty("测试用例ID")
-    private String id;
+    private String caseId;
+    /**
+     * 主类名称
+     */
+    @ExcelIgnore
+    private String mainClassName;
 
     @ExcelProperty("方法/函数")
     private String method;

@@ -7,25 +7,37 @@ import com.github.javaparser.ast.Node;
 import com.github.javaparser.ast.NodeList;
 import com.github.javaparser.ast.body.*;
 import com.github.javaparser.ast.comments.Comment;
+import tool.model.DocMapper;
+import tool.model.TestData;
 import tool.model.TestDoc;
 
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class ExcelGenerator {
-    static Pattern pattern1 = Pattern.compile("(目的|期望结果):\\s+(.*)");
+    static Pattern pattern1 = Pattern.compile("(目的|期望结果)[:：]\\s{0,}(.*)");
+    static Pattern pattern2 = Pattern.compile("//data([\\s\\S]{1,})//stub");
 //    static Pattern pattern2 = Pattern.compile("([a-z,A-Z]+)\\d+\\(\\)$");
 
-    static List<TestDoc> testMethods = new ArrayList<>();
+    List<TestDoc> testMethods = new ArrayList<>();
 
-    public List<TestDoc> generatorExcel(String classPath,
+    public List<TestDoc> generatorExcel(List<String> classPaths,
                                         String excelPath, String user,
                                         String date, String version) {
-        List<TestDoc> testDocs = readCode(classPath);
+        List<TestDoc> testDocs = new ArrayList<>();
+        classPaths.forEach(classPath -> testDocs.addAll(readCode(classPath)));
+        Map<String, Integer> mainClassCounter = new HashMap<>(testDocs.size() * 2);
+        testDocs.forEach(testDoc -> {
+            mainClassCounter.merge(testDoc.getMainClassName(), 1, Integer::sum);
+            testDoc.setCaseId(testDoc.getMainClassName() + "_" + mainClassCounter.get(testDoc.getMainClassName()));
+        });
+
         testDocs.forEach(testDoc -> {
             testDoc.setTester(user);
             testDoc.setTestDate(date);
@@ -36,11 +48,36 @@ public class ExcelGenerator {
     }
 
     public void writeExcel(String fileName, List<TestDoc> testDocs) {
-        try (ExcelWriter excelWriter = EasyExcel.write(fileName, TestDoc.class).build()) {
+        try (ExcelWriter excelWriter = EasyExcel.write(fileName).build()) {
             // 这里注意 如果同一个sheet只要创建一次
-            WriteSheet writeSheet = EasyExcel.writerSheet("内存清算").build();
+            WriteSheet writeSheet = EasyExcel.writerSheet("内存清算").head(TestDoc.class).build();
+            List<TestData> testDataList = DocMapper.INSTANCE.toTestDataList(testDocs);
+            testDocs.forEach(testDoc -> testDoc.setData(""));
+            WriteSheet writeSheet2 = EasyExcel.writerSheet("@测试数据").head(TestData.class).build();
             // 分页去数据库查询数据 这里可以去数据库查询每一页的数据
             excelWriter.write(testDocs, writeSheet);
+            excelWriter.write(testDataList, writeSheet2);
+
+        }
+
+    }
+
+    public void appendExcel(String fileName, List<TestDoc> testDocs) {
+        String tmpFileName = fileName.replaceAll(".xlsx", "-tmp.xlsx");
+        File file = new File(fileName);
+        File tempFile = new File(tmpFileName);
+        if (file.exists()) {
+            // 第二次按照原有格式，不需要表头，追加写入
+            EasyExcel.write(file, TestDoc.class).needHead(false).
+                    withTemplate(file).file(tempFile).sheet().doWrite(testDocs);
+        } else {
+            // 第一次写入需要表头
+            EasyExcel.write(file, TestDoc.class).sheet().doWrite(testDocs);
+        }
+
+        if (tempFile.exists()) {
+            file.delete();
+            tempFile.renameTo(file);
         }
 
     }
@@ -60,9 +97,17 @@ public class ExcelGenerator {
     }
 
     /**
-     * 解析单个Java文件
-     *
-     * @param cu 编译单元
+     * 测试用例： 有@InjectMocks注释的属性，从开始向下自增。done
+     * 方法、函数： 取test***01()中的***首字母小写。 done
+     * 测试目的描述： 测试目的 直接获取 done
+     * 测试步骤概述： 固定为启动清算，检查测试状态 done
+     * 测试数据：  从方法体中获取  从//data和//stub之间获取，为空则从setUp中获取。 todo
+     * 期望结果： 期望结果 直接获取 done
+     * 实际结果： 取 期望结果 的结果 done
+     * 测试结果：都为pass
+     * 测试人员：获取配置
+     * 测试日期：获取配置
+     * 测试版本：获取配置
      */
     private void parseOneFile(CompilationUnit cu) {
         // 类型声明
@@ -70,53 +115,17 @@ public class ExcelGenerator {
         for (TypeDeclaration<?> type : types) {
             // 成员,貌似getChildNodes方法也可行
             NodeList<BodyDeclaration<?>> members = type.getMembers();
-            members.forEach(this::processNode);
+            members.forEach(this::parseTestMethodToDoc);
             String mainClassName = getMainClassName(members);
             for (int i = 0; i < testMethods.size(); i++) {
-                testMethods.get(i).setId(mainClassName + "_" + (i + 1));
+                TestDoc testMethod = testMethods.get(i);
+                testMethod.setMainClassName(mainClassName);
+                testMethod.setCaseId(testMethod.getMainClassName() + "_" + (i + 1));
             }
         }
 
     }
 
-    private static void generateTestDocModel(MethodDeclaration n) {
-        if (n.getAnnotationByName("Test").isPresent()) {
-            //测试方法则加入进来
-            TestDoc testDoc = new TestDoc();
-            String methodName = captureName(n.getName().asString());
-            testDoc.setMethod(methodName);
-            n.getComment().ifPresent(comment -> {
-                Matcher matcher = pattern1.matcher(comment.getContent());
-                matcher.results().forEach(m -> {
-                            if (m.group(1).equals("目的")) {
-                                testDoc.setDesc(m.group(2).replaceAll("\\*", ""));
-                            }
-                            if (m.group(1).equals("期望结果")) {
-                                testDoc.setResult(m.group(2).replaceAll("\\*", ""));
-                                testDoc.setExpect(m.group(2).replaceAll("\\*", ""));
-                            }
-                        }
-                );
-                testDoc.setStep("启动清算，检查测试状态");
-                testDoc.setData("");
-                testDoc.setTestResult("pass");
-                /**
-                 * 测试用例： 有@InjectMocks注释的属性，从开始向下自增。done
-                 * 方法、函数： 取test***01()中的***首字母小写。 done
-                 * 测试目的描述： 测试目的 直接获取 done
-                 * 测试步骤概述： 固定为启动清算，检查测试状态 done
-                 * 测试数据：  从方法体中获取  从//data和//stub之间获取，为空则从setUp中获取。 todo
-                 * 期望结果： 期望结果 直接获取 done
-                 * 实际结果： 取 期望结果 的结果 done
-                 * 测试结果：都为pass
-                 * 测试人员：获取配置
-                 * 测试日期：获取配置
-                 * 测试版本：获取配置
-                 */
-            });
-            testMethods.add(testDoc);
-        }
-    }
 
     private static String captureName(String name) {
         String ret = name.replaceAll("test", "")
@@ -154,16 +163,40 @@ public class ExcelGenerator {
      *
      * @param node
      */
-    private void processNode(Node node) {
-        if (node instanceof TypeDeclaration) {
-            // 类型声明
-            // do something with this type declaration
-
-        } else if (node instanceof MethodDeclaration) {
-            // 方法声明
-            // do something with this method declaration
-            generateTestDocModel((MethodDeclaration) node);
-
+    private void parseTestMethodToDoc(Node node) {
+        if (!(node instanceof MethodDeclaration)) {
+            return;
+        }
+        // 方法声明
+        // do something with this method declaration
+        if (((MethodDeclaration) node).getAnnotationByName("Test").isPresent()) {
+            //测试方法则加入进来
+            TestDoc testDoc = new TestDoc();
+            String methodName = captureName(((MethodDeclaration) node).getName().asString());
+            testDoc.setMethod(methodName);
+            node.getComment().ifPresent(comment -> {
+                Matcher matcher = pattern1.matcher(comment.getContent());
+                matcher.results().forEach(m -> {
+                            if (m.group(1).equals("目的")) {
+                                testDoc.setDesc(m.group(2).replaceAll("\\*", ""));
+                            }
+                            if (m.group(1).equals("期望结果")) {
+                                testDoc.setResult(m.group(2).replaceAll("\\*", ""));
+                                testDoc.setExpect(m.group(2).replaceAll("\\*", ""));
+                            }
+                        }
+                );
+                testDoc.setStep("启动清算，检查测试状态");
+                if (((MethodDeclaration) node).getBody().isPresent()) {
+                    String body = ((MethodDeclaration) node).getBody().get().getStatements().toString();
+                    Matcher matcher2 = pattern2.matcher(body);
+                    if (matcher2.find()) {
+                        testDoc.setData(matcher2.group(1).trim());
+                    }
+                }
+                testDoc.setTestResult("pass");
+            });
+            testMethods.add(testDoc);
         }
     }
 

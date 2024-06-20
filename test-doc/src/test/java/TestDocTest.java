@@ -1,24 +1,10 @@
-import com.alibaba.excel.EasyExcel;
-import com.alibaba.excel.ExcelWriter;
-import com.alibaba.excel.write.metadata.WriteSheet;
-import com.github.javaparser.StaticJavaParser;
-import com.github.javaparser.ast.CompilationUnit;
-import com.github.javaparser.ast.PackageDeclaration;
-import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
-import com.github.javaparser.ast.body.MethodDeclaration;
-import com.github.javaparser.ast.visitor.VoidVisitorAdapter;
 import org.example.PlyWoodMatch;
 import org.junit.Test;
 import org.mockito.InjectMocks;
 import tool.model.TestDoc;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.lang.reflect.Field;
-import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import static org.junit.Assert.assertEquals;
 
@@ -36,7 +22,13 @@ public class TestDocTest {
      */
     @InjectMocks
     PlyWoodMatch plyWoodMatch;
+    String classPath;
 
+    {
+        classPath = this.getClass().getResource("/")
+                .getPath().replaceAll("target/test-classes/", "src/test/java/TestDocTest.java");
+
+    }
 
     /**
      * 测试excel生成
@@ -45,14 +37,37 @@ public class TestDocTest {
      */
     @Test
     public void testMatch01() {
-        String classPath = "E:\\workspace\\tdd-test\\test-doc\\src\\test\\java\\TestDocTest.java";
-        String excelPath = "d:/test-doc" + System.currentTimeMillis() + ".xlsx";
-        List<TestDoc> list = new ExcelGenerator().generatorExcel(classPath, excelPath,"","","");
-        assertEquals(1, list.size());
-        assertEquals("PlyWoodMatch_1", list.get(0).getId());
+        //data
+        String excelPath = "d:/test-doc.xlsx";
+        //stub
+        List<TestDoc> list = new ExcelGenerator().generatorExcel(Collections.singletonList(classPath), excelPath, "", "", "");
+        //List<TestDoc> list = new ExcelGenerator().readCode(classPath);
+        assertEquals(2, list.size());
+        assertEquals("PlyWoodMatch_1", list.get(0).getCaseId());
         assertEquals("match", list.get(0).getMethod());
         assertEquals("测试excel正确性", list.get(0).getDesc());
         assertEquals("excel能正常生成", list.get(0).getResult());
+        //assertEquals("String excelPath = \"d:/test-doc.xlsx\";",list.get(0).getData());
 
+    }
+
+    /**
+     * 测试中文冒号
+     * 目的:测试中文冒号
+     * 期望结果：中文冒号能被识别
+     */
+    @Test
+    public void testNone() {
+        //data
+        String excelPath = "d:/test-doc.xlsx";
+
+        String excelPath2 = "d:/test-doc.xlsx";
+        //stub
+        List<TestDoc> list = new ExcelGenerator().readCode(classPath);
+        assertEquals(2, list.size());
+        assertEquals("PlyWoodMatch_2", list.get(1).getCaseId());
+        assertEquals("none", list.get(1).getMethod());
+        assertEquals("测试中文冒号", list.get(1).getDesc());
+        assertEquals("中文冒号能被识别", list.get(1).getResult());
     }
 }
