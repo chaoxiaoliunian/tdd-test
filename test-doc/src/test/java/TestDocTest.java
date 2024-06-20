@@ -7,6 +7,7 @@ import java.util.Collections;
 import java.util.List;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 /**
  * TODO: 预计花费2小时
@@ -40,14 +41,14 @@ public class TestDocTest {
         //data
         String excelPath = "d:/test-doc.xlsx";
         //stub
-        List<TestDoc> list = new ExcelGenerator().generatorExcel(Collections.singletonList(classPath), excelPath, "", "", "");
-        //List<TestDoc> list = new ExcelGenerator().readCode(classPath);
+        //List<TestDoc> list = new ExcelGenerator().generatorExcel(Collections.singletonList(classPath), excelPath, "", "", "");
+        List<TestDoc> list = new ExcelGenerator().readCode(classPath);
         assertEquals(2, list.size());
         assertEquals("PlyWoodMatch_1", list.get(0).getCaseId());
         assertEquals("match", list.get(0).getMethod());
         assertEquals("测试excel正确性", list.get(0).getDesc());
         assertEquals("excel能正常生成", list.get(0).getResult());
-        //assertEquals("String excelPath = \"d:/test-doc.xlsx\";",list.get(0).getData());
+        assertTrue(list.get(0).getData().contains("String excelPath = \"d:/test-doc.xlsx\";"));
 
     }
 
@@ -58,11 +59,11 @@ public class TestDocTest {
      */
     @Test
     public void testNone() {
-        //data
+        //  data
         String excelPath = "d:/test-doc.xlsx";
 
         String excelPath2 = "d:/test-doc.xlsx";
-        //stub
+        //  stub
         List<TestDoc> list = new ExcelGenerator().readCode(classPath);
         assertEquals(2, list.size());
         assertEquals("PlyWoodMatch_2", list.get(1).getCaseId());

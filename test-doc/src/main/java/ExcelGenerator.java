@@ -22,7 +22,7 @@ import java.util.regex.Pattern;
 
 public class ExcelGenerator {
     static Pattern pattern1 = Pattern.compile("(目的|期望结果)[:：]\\s{0,}(.*)");
-    static Pattern pattern2 = Pattern.compile("//data([\\s\\S]{1,})//stub");
+    static Pattern pattern2 = Pattern.compile("//[\\s]{0,}data([\\s\\S]{1,})//[\\s]{0,}stub");
 //    static Pattern pattern2 = Pattern.compile("([a-z,A-Z]+)\\d+\\(\\)$");
 
     List<TestDoc> testMethods = new ArrayList<>();
