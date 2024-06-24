@@ -1,4 +1,5 @@
 import org.example.PlyWoodMatch;
+import org.junit.Before;
 import org.junit.Test;
 import org.mockito.InjectMocks;
 import tool.model.TestDoc;
@@ -10,7 +11,6 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 /**
- * TODO: 预计花费2小时
  * 1.支持任意的测试类生成
  * 2.打jar包，可指定任意的类。
  * 3.内网测试。
@@ -31,6 +31,15 @@ public class TestDocTest {
 
     }
 
+    @Before
+    public void setUp() {
+        initData();
+    }
+
+    public void initData() {
+        String test = "setUp的body";
+    }
+
     /**
      * 测试excel生成
      * 目的: 测试excel正确性
@@ -43,7 +52,7 @@ public class TestDocTest {
         //stub
         //List<TestDoc> list = new ExcelGenerator().generatorExcel(Collections.singletonList(classPath), excelPath, "", "", "");
         List<TestDoc> list = new ExcelGenerator().readCode(classPath);
-        assertEquals(2, list.size());
+        assertEquals(3, list.size());
         assertEquals("PlyWoodMatch_1", list.get(0).getCaseId());
         assertEquals("match", list.get(0).getMethod());
         assertEquals("测试excel正确性", list.get(0).getDesc());
@@ -61,14 +70,25 @@ public class TestDocTest {
     public void testNone() {
         //  data
         String excelPath = "d:/test-doc.xlsx";
-
         String excelPath2 = "d:/test-doc.xlsx";
         //  stub
         List<TestDoc> list = new ExcelGenerator().readCode(classPath);
-        assertEquals(2, list.size());
+        assertEquals(3, list.size());
         assertEquals("PlyWoodMatch_2", list.get(1).getCaseId());
         assertEquals("none", list.get(1).getMethod());
         assertEquals("测试中文冒号", list.get(1).getDesc());
         assertEquals("中文冒号能被识别", list.get(1).getResult());
+    }
+
+    /**
+     * 目的:
+     * 测试setUp能生成注释
+     * 期望结果:
+     * setUp生成注释
+     */
+    @Test
+    public void testSetUpData() {
+        List<TestDoc> list = new ExcelGenerator().readCode(classPath);
+        assertTrue(list.get(2).getData().contains("String test = \"setUp的body\";"));
     }
 }

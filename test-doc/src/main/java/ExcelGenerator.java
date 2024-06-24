@@ -1,5 +1,6 @@
 import com.alibaba.excel.EasyExcel;
 import com.alibaba.excel.ExcelWriter;
+import com.alibaba.excel.util.StringUtils;
 import com.alibaba.excel.write.metadata.WriteSheet;
 import com.github.javaparser.StaticJavaParser;
 import com.github.javaparser.ast.CompilationUnit;
@@ -13,6 +14,7 @@ import tool.model.TestDoc;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.rmi.MarshalException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -21,11 +23,10 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class ExcelGenerator {
+    public static final String SET_UP = "setUp";
     static Pattern pattern1 = Pattern.compile("(目的|期望结果)[:：]\\s{0,}(.*)");
     static Pattern pattern2 = Pattern.compile("//[\\s]{0,}data([\\s\\S]{1,})//[\\s]{0,}stub");
 //    static Pattern pattern2 = Pattern.compile("([a-z,A-Z]+)\\d+\\(\\)$");
-
-    List<TestDoc> testMethods = new ArrayList<>();
 
     public List<TestDoc> generatorExcel(List<String> classPaths,
                                         String excelPath, String user,
@@ -90,10 +91,7 @@ public class ExcelGenerator {
         } catch (FileNotFoundException e) {
             throw new RuntimeException(e);
         }
-        //获取所有的测试方法
-        parseOneFile(cu);
-
-        return testMethods;
+        return parseTestMethods(cu);
     }
 
     /**
@@ -109,21 +107,34 @@ public class ExcelGenerator {
      * 测试日期：获取配置
      * 测试版本：获取配置
      */
-    private void parseOneFile(CompilationUnit cu) {
+    private List<TestDoc> parseTestMethods(CompilationUnit cu) {
+        List<TestDoc> testMethods = new ArrayList<>();
         // 类型声明
         NodeList<TypeDeclaration<?>> types = cu.getTypes();
         for (TypeDeclaration<?> type : types) {
             // 成员,貌似getChildNodes方法也可行
             NodeList<BodyDeclaration<?>> members = type.getMembers();
-            members.forEach(this::parseTestMethodToDoc);
+            TestDoc setUp = null;
+            for (BodyDeclaration<?> member : members) {
+                TestDoc testDoc = parseTestMethodToDoc(member);
+                if (null == testDoc||null==testDoc.getMethod()) continue;
+                if (StringUtils.equals("initData", testDoc.getMethod())) {
+                    setUp = testDoc;
+                } else {
+                    testMethods.add(testDoc);
+                }
+            }
             String mainClassName = getMainClassName(members);
             for (int i = 0; i < testMethods.size(); i++) {
                 TestDoc testMethod = testMethods.get(i);
                 testMethod.setMainClassName(mainClassName);
                 testMethod.setCaseId(testMethod.getMainClassName() + "_" + (i + 1));
+                if (StringUtils.isEmpty(testMethod.getData()) && setUp != null) {
+                    testMethod.setData(setUp.getData());
+                }
             }
         }
-
+        return testMethods;
     }
 
 
@@ -163,16 +174,17 @@ public class ExcelGenerator {
      *
      * @param node
      */
-    private void parseTestMethodToDoc(Node node) {
+    private TestDoc parseTestMethodToDoc(Node node) {
         if (!(node instanceof MethodDeclaration)) {
-            return;
+            return null;
         }
+        TestDoc testDoc = new TestDoc();
         // 方法声明
         // do something with this method declaration
-        if (((MethodDeclaration) node).getAnnotationByName("Test").isPresent()) {
+        MethodDeclaration method = (MethodDeclaration) node;
+       String methodName= captureName(method.getName().asString());
+        if (method.getAnnotationByName("Test").isPresent()) {
             //测试方法则加入进来
-            TestDoc testDoc = new TestDoc();
-            String methodName = captureName(((MethodDeclaration) node).getName().asString());
             testDoc.setMethod(methodName);
             node.getComment().ifPresent(comment -> {
                 Matcher matcher = pattern1.matcher(comment.getContent());
@@ -187,18 +199,30 @@ public class ExcelGenerator {
                         }
                 );
                 testDoc.setStep("启动清算，检查测试状态");
-                if (((MethodDeclaration) node).getBody().isPresent()) {
-                    String body = ((MethodDeclaration) node).getBody().get().getStatements().toString();
-                    Matcher matcher2 = pattern2.matcher(body);
-                    if (matcher2.find()) {
-                        testDoc.setData(matcher2.group(1).trim());
-                    }
-                }
+                testDoc.setData(getDataBody(method));
                 testDoc.setTestResult("pass");
             });
-            testMethods.add(testDoc);
         }
+
+        if (StringUtils.equals("initData",methodName)) {
+            testDoc.setData(method.getBody().get().getStatements().toString());
+            testDoc.setMethod(methodName);
+        }
+        return testDoc;
     }
 
-
+    private static String getDataBody(MethodDeclaration method) {
+        String data = "";
+        if (method.getBody().isPresent()) {
+            String body = method.getBody().get().getStatements().toString();
+            Matcher matcher2 = pattern2.matcher(body);
+            if (matcher2.find()) {
+                String ret = matcher2.group(1).trim();
+                data = StringUtils.isNotBlank(ret) ? ret : "";
+            } else {
+                //System.out.println(body);
+            }
+        }
+        return data;
+    }
 }

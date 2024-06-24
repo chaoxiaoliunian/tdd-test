@@ -1,13 +1,11 @@
-package code.tool;
+package code.tool.database;
 
-import code.tool.database.MetaInfoDataSource;
-import code.tool.database.MysqlMetaInfoDataSource;
 import code.tool.model.TableMetaInfo;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
 
-public class CodeGeneratorTest {
+public class MysqlMetaInfoDataSourceTest {
     MetaInfoDataSource dataSource = new MysqlMetaInfoDataSource();
     /**
      *todo:代码生成器完整功能
