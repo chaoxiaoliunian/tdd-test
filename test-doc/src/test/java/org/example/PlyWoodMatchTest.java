@@ -2,12 +2,13 @@ package org.example;
 
 import junit.framework.TestCase;
 import org.junit.Test;
+import tool.model.TestData;
 
 public class PlyWoodMatchTest extends TestCase {
     /**
      * 被测试类
      */
-    PlyWoodMatch plyWoodMatch = new PlyWoodMatch();
+    TestData plyWoodMatch = new TestData();
 
     /**
      * 测试配对日

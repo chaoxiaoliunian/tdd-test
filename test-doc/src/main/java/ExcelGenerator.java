@@ -33,11 +33,7 @@ public class ExcelGenerator {
                                         String date, String version) {
         List<TestDoc> testDocs = new ArrayList<>();
         classPaths.forEach(classPath -> testDocs.addAll(readCode(classPath)));
-        Map<String, Integer> mainClassCounter = new HashMap<>(testDocs.size() * 2);
-        testDocs.forEach(testDoc -> {
-            mainClassCounter.merge(testDoc.getMainClassName(), 1, Integer::sum);
-            testDoc.setCaseId(testDoc.getMainClassName() + "_" + mainClassCounter.get(testDoc.getMainClassName()));
-        });
+        setCaseId(testDocs);
 
         testDocs.forEach(testDoc -> {
             testDoc.setTester(user);
@@ -46,6 +42,14 @@ public class ExcelGenerator {
         });
         writeExcel(excelPath, testDocs);
         return testDocs;
+    }
+
+    private void setCaseId(List<TestDoc> testDocs) {
+        Map<String, Integer> mainClassCounter = new HashMap<>(testDocs.size() * 2);
+        testDocs.forEach(testDoc -> {
+            mainClassCounter.merge(testDoc.getMainClassName(), 1, Integer::sum);
+            testDoc.setCaseId(testDoc.getMainClassName() + "_" + mainClassCounter.get(testDoc.getMainClassName()));
+        });
     }
 
     public void writeExcel(String fileName, List<TestDoc> testDocs) {
@@ -117,7 +121,7 @@ public class ExcelGenerator {
             TestDoc setUp = null;
             for (BodyDeclaration<?> member : members) {
                 TestDoc testDoc = parseTestMethodToDoc(member);
-                if (null == testDoc||null==testDoc.getMethod()) continue;
+                if (null == testDoc || null == testDoc.getMethod()) continue;
                 if (StringUtils.equals("initData", testDoc.getMethod())) {
                     setUp = testDoc;
                 } else {
@@ -182,7 +186,7 @@ public class ExcelGenerator {
         // 方法声明
         // do something with this method declaration
         MethodDeclaration method = (MethodDeclaration) node;
-       String methodName= captureName(method.getName().asString());
+        String methodName = captureName(method.getName().asString());
         if (method.getAnnotationByName("Test").isPresent()) {
             //测试方法则加入进来
             testDoc.setMethod(methodName);
@@ -204,7 +208,7 @@ public class ExcelGenerator {
             });
         }
 
-        if (StringUtils.equals("initData",methodName)) {
+        if (StringUtils.equals("initData", methodName)) {
             testDoc.setData(method.getBody().get().getStatements().toString());
             testDoc.setMethod(methodName);
         }
