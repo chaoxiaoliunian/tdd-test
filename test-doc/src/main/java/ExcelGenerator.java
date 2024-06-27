@@ -73,6 +73,8 @@ public class ExcelGenerator {
             WriteSheet writeSheet3 = EasyExcel.writerSheet("@统计").head(TestCount.class).build();
             TestCount testCount = new TestCount();
             testCount.setAssertCount(assertCount);
+            testCount.setCaseId("总计测试用例："+testDocs.size());
+            testCount.setMethod("总计断言：");
             //TODO:  统计缩减为局部函数
             List<TestCount> testCounts = DocMapper.INSTANCE.toTestCountList(testDocs);
             testCounts.add(testCount);
@@ -259,8 +261,8 @@ public class ExcelGenerator {
                 ExpressionStmt expressionStmt = (ExpressionStmt) statement;
                 Expression expression = expressionStmt.getExpression();
                 if (expression.isMethodCallExpr()) {
-                    MethodCallExpr methodCallExpr = expression.asMethodCallExpr();
-                    if (isAssert(methodCallExpr.getNameAsString())) {
+                    //MethodCallExpr methodCallExpr = expression.asMethodCallExpr();
+                    if (isAssert(expression.toString())) {
                         asserts.add(expression.toString());
                     }
                 }
