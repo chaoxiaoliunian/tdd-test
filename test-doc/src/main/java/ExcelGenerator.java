@@ -73,7 +73,7 @@ public class ExcelGenerator {
             WriteSheet writeSheet3 = EasyExcel.writerSheet("@统计").head(TestCount.class).build();
             TestCount testCount = new TestCount();
             testCount.setAssertCount(assertCount);
-            testCount.setCaseId("总计测试用例："+testDocs.size());
+            testCount.setCaseId("总计测试用例：" + testDocs.size());
             testCount.setMethod("总计断言：");
             //TODO:  统计缩减为局部函数
             List<TestCount> testCounts = DocMapper.INSTANCE.toTestCountList(testDocs);
@@ -213,6 +213,7 @@ public class ExcelGenerator {
             node.getComment().ifPresent(comment -> {
                 Matcher matcher = pattern1.matcher(comment.getContent());
                 matcher.results().forEach(m -> {
+                            //TODO:配置文件化
                             if (m.group(1).equals("目的")) {
                                 testDoc.setDesc(m.group(2).replaceAll("\\*", ""));
                             }
@@ -273,7 +274,8 @@ public class ExcelGenerator {
     }
 
     private boolean isAssert(String st) {
-        List<String> asserts = Arrays.asList("assert", "times(");
+        //TODO:配置文件化
+        List<String> asserts = Arrays.asList("assert", "times(", "expect(", "expectMessage(");
         for (String assertStr : asserts) {
             if (st.contains(assertStr)) {
                 return true;
