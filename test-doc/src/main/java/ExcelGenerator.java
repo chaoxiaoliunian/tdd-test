@@ -8,6 +8,7 @@ import com.github.javaparser.ast.Node;
 import com.github.javaparser.ast.NodeList;
 import com.github.javaparser.ast.body.*;
 import com.github.javaparser.ast.comments.Comment;
+import lombok.extern.slf4j.Slf4j;
 import tool.model.DocMapper;
 import tool.model.TestData;
 import tool.model.TestDoc;
@@ -22,6 +23,7 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+@Slf4j
 public class ExcelGenerator {
     public static final String SET_UP = "setUp";
     static Pattern pattern1 = Pattern.compile("(目的|期望结果)[:：]\\s{0,}(.*)");
@@ -88,12 +90,13 @@ public class ExcelGenerator {
     }
 
     public List<TestDoc> readCode(String classPath) {
+        log.info("readCode,{}", classPath);
         File file = new File(classPath);
         CompilationUnit cu = null;
         try {
             cu = StaticJavaParser.parse(file);
         } catch (FileNotFoundException e) {
-            throw new RuntimeException(e);
+            log.error("readCode,{}", classPath, e);
         }
         return parseTestMethods(cu);
     }
@@ -121,11 +124,13 @@ public class ExcelGenerator {
             TestDoc setUp = null;
             for (BodyDeclaration<?> member : members) {
                 TestDoc testDoc = parseTestMethodToDoc(member);
-                if (null == testDoc || null == testDoc.getMethod()) continue;
-                if (StringUtils.equals("initData", testDoc.getMethod())) {
-                    setUp = testDoc;
-                } else {
+                if (null == testDoc || null == testDoc.getMethod()) {
+                    continue;
+                }
+                if (!StringUtils.equals("initData", testDoc.getMethod())) {
                     testMethods.add(testDoc);
+                } else {
+                    setUp = testDoc;
                 }
             }
             String mainClassName = getMainClassName(members);
