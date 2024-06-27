@@ -15,4 +15,8 @@ public interface DocMapper {
     TestData toTestData(TestDoc testDoc);
 
     List<TestData> toTestDataList(List<TestDoc> testDocs);
+
+    TestCount toTestCount(TestDoc testDoc);
+
+    List<TestCount> toTestCountList(List<TestDoc> testDocs);
 }

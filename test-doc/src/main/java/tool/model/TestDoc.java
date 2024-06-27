@@ -15,6 +15,12 @@ import lombok.ToString;
 @EqualsAndHashCode
 @ToString
 public class TestDoc {
+    /**
+     * 一个方法内 assert或者times的次数
+     */
+    @ExcelIgnore
+    private int assertCount;
+
     @ExcelProperty("测试用例ID")
     private String caseId;
     /**
@@ -60,4 +66,5 @@ public class TestDoc {
 
     @ExcelProperty("备注")
     private String remarks;
+
 }

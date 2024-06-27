@@ -88,7 +88,9 @@ public class TestDocTest {
      */
     @Test
     public void testSetUpData() {
-        List<TestDoc> list = new ExcelGenerator().readCode(classPath);
+        ExcelGenerator excelGenerator = new ExcelGenerator();
+        List<TestDoc> list = excelGenerator.readCode(classPath);
         assertTrue(list.get(2).getData().contains("String test = \"setUp的body\";"));
+        assertEquals(13, excelGenerator.getAssertCounter());
     }
 }
