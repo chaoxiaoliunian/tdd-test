@@ -73,7 +73,7 @@ public class ExcelGenerator {
             WriteSheet writeSheet3 = EasyExcel.writerSheet("@统计").head(TestCount.class).build();
             TestCount testCount = new TestCount();
             testCount.setAssertCount(assertCount);
-            //TODO: 统计缩减为局部函数
+            //TODO:  统计缩减为局部函数
             List<TestCount> testCounts = DocMapper.INSTANCE.toTestCountList(testDocs);
             testCounts.add(testCount);
             excelWriter.write(testCounts, writeSheet3);
