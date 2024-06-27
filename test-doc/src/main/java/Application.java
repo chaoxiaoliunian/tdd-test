@@ -6,7 +6,8 @@ public class Application {
         String user = get(args, 2);
         String date = get(args, 3);
         String version = get(args, 4);
-        excelGenerator.generatorExcel(Arrays.asList(args[0].split(",")), args[1], user, date, version);
+
+        excelGenerator.generatorExcel(Arrays.asList(args[0].replaceAll("\\s","").split(",")), args[1], user, date, version);
     }
 
     private static String get(String[] args, int index) {
