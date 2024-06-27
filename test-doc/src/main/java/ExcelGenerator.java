@@ -8,18 +8,20 @@ import com.github.javaparser.ast.Node;
 import com.github.javaparser.ast.NodeList;
 import com.github.javaparser.ast.body.*;
 import com.github.javaparser.ast.comments.Comment;
+import com.github.javaparser.ast.expr.Expression;
+import com.github.javaparser.ast.expr.MethodCallExpr;
+import com.github.javaparser.ast.stmt.ExpressionStmt;
 import lombok.extern.slf4j.Slf4j;
 import tool.model.DocMapper;
+import tool.model.TestCount;
 import tool.model.TestData;
 import tool.model.TestDoc;
 
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.rmi.MarshalException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -28,7 +30,11 @@ public class ExcelGenerator {
     public static final String SET_UP = "setUp";
     static Pattern pattern1 = Pattern.compile("(目的|期望结果)[:：]\\s{0,}(.*)");
     static Pattern pattern2 = Pattern.compile("//[\\s]{0,}data([\\s\\S]{1,})//[\\s]{0,}stub");
-//    static Pattern pattern2 = Pattern.compile("([a-z,A-Z]+)\\d+\\(\\)$");
+    AtomicInteger assertCounter = new AtomicInteger(0);
+
+    public int getAssertCounter() {
+        return assertCounter.get();
+    }
 
     public List<TestDoc> generatorExcel(List<String> classPaths,
                                         String excelPath, String user,
@@ -36,13 +42,13 @@ public class ExcelGenerator {
         List<TestDoc> testDocs = new ArrayList<>();
         classPaths.forEach(classPath -> testDocs.addAll(readCode(classPath)));
         setCaseId(testDocs);
-
         testDocs.forEach(testDoc -> {
             testDoc.setTester(user);
             testDoc.setTestDate(date);
             testDoc.setVersion(version);
         });
-        writeExcel(excelPath, testDocs);
+
+        writeExcel(excelPath, testDocs, assertCounter.get());
         return testDocs;
     }
 
@@ -54,7 +60,7 @@ public class ExcelGenerator {
         });
     }
 
-    public void writeExcel(String fileName, List<TestDoc> testDocs) {
+    public void writeExcel(String fileName, List<TestDoc> testDocs, int assertCount) {
         try (ExcelWriter excelWriter = EasyExcel.write(fileName).build()) {
             // 这里注意 如果同一个sheet只要创建一次
             WriteSheet writeSheet = EasyExcel.writerSheet("内存清算").head(TestDoc.class).build();
@@ -64,7 +70,10 @@ public class ExcelGenerator {
             // 分页去数据库查询数据 这里可以去数据库查询每一页的数据
             excelWriter.write(testDocs, writeSheet);
             excelWriter.write(testDataList, writeSheet2);
-
+            WriteSheet writeSheet3 = EasyExcel.writerSheet("@统计").head(TestCount.class).build();
+            TestCount testCount = new TestCount();
+            testCount.setAssertCount(assertCount);
+            excelWriter.write(List.of(testCount), writeSheet3);
         }
 
     }
@@ -90,13 +99,13 @@ public class ExcelGenerator {
     }
 
     public List<TestDoc> readCode(String classPath) {
-        log.info("readCode,{}", classPath);
+        log.info("readCode of class,{}", classPath);
         File file = new File(classPath);
         CompilationUnit cu = null;
         try {
             cu = StaticJavaParser.parse(file);
         } catch (FileNotFoundException e) {
-            log.error("readCode,{}", classPath, e);
+            log.error("readCode err ,{}", classPath, e);
         }
         return parseTestMethods(cu);
     }
@@ -141,6 +150,7 @@ public class ExcelGenerator {
                 if (StringUtils.isEmpty(testMethod.getData()) && setUp != null) {
                     testMethod.setData(setUp.getData());
                 }
+                assertCounter.getAndAdd(testMethod.getAssertCount());
             }
         }
         return testMethods;
@@ -209,6 +219,7 @@ public class ExcelGenerator {
                 );
                 testDoc.setStep("启动清算，检查测试状态");
                 testDoc.setData(getDataBody(method));
+                testDoc.setAssertCount(getAssertCount(method));
                 testDoc.setTestResult("pass");
             });
         }
@@ -220,7 +231,7 @@ public class ExcelGenerator {
         return testDoc;
     }
 
-    private static String getDataBody(MethodDeclaration method) {
+    private String getDataBody(MethodDeclaration method) {
         String data = "";
         if (method.getBody().isPresent()) {
             String body = method.getBody().get().getStatements().toString();
@@ -229,9 +240,40 @@ public class ExcelGenerator {
                 String ret = matcher2.group(1).trim();
                 data = StringUtils.isNotBlank(ret) ? ret : "";
             } else {
-                //System.out.println(body);
+                log.warn("method {} has no data mock", method.getName());
             }
         }
         return data;
+    }
+
+    private int getAssertCount(MethodDeclaration method) {
+        if (method.getBody().isEmpty()) {
+            return 0;
+        }
+        List<String> asserts = new LinkedList<>();
+        method.getBody().get().getStatements().forEach(statement -> {
+            if (statement instanceof ExpressionStmt) {
+                ExpressionStmt expressionStmt = (ExpressionStmt) statement;
+                Expression expression = expressionStmt.getExpression();
+                if (expression.isMethodCallExpr()) {
+                    MethodCallExpr methodCallExpr = expression.asMethodCallExpr();
+                    if (isAssert(methodCallExpr.getNameAsString())) {
+                        asserts.add(expression.toString());
+                    }
+                }
+            }
+        });
+        log.debug("assert expression:{}", asserts);
+        return asserts.size();
+    }
+
+    private boolean isAssert(String st) {
+        List<String> asserts = Arrays.asList("assert", "times(");
+        for (String assertStr : asserts) {
+            if (st.contains(assertStr)) {
+                return true;
+            }
+        }
+        return false;
     }
 }
